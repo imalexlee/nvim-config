@@ -120,7 +120,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim',  opts = {} },
+  { 'folke/which-key.nvim',      opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -196,11 +196,32 @@ require('lazy').setup({
     },
   },
   {
+    'rebelot/kanagawa.nvim',
+    priority = 1000,
+  },
+  {
+    'rose-pine/neovim',
+    name = 'rose-pine',
+  },
+  { "bluz71/vim-moonfly-colors", name = "moonfly", lazy = false, priority = 1000 },
+  {
     "mcchrish/zenbones.nvim",
     priority = 1000,
     dependencies = {
       "rktjmp/lush.nvim",
     },
+  },
+  {
+    'EdenEast/nightfox.nvim',
+    priority = 1000,
+  },
+  {
+    'nordtheme/vim',
+    priority = 1000,
+  },
+  {
+    'sainnhe/everforest',
+    priority = 1000,
   },
   {
     -- Theme inspired by Atom
@@ -215,7 +236,7 @@ require('lazy').setup({
     opts = {
       options = {
         icons_enabled = false,
-        theme = 'onedark',
+        theme = 'zenwritten',
         component_separators = '|',
         section_separators = '',
       },
@@ -279,6 +300,44 @@ require('lazy').setup({
   -- { import = 'custom.plugins' },
 }, {})
 
+require('kanagawa').setup({
+  compile = false,  -- enable compiling the colorscheme
+  undercurl = true, -- enable undercurls
+  commentStyle = { italic = true },
+  functionStyle = {},
+  keywordStyle = { italic = true },
+  statementStyle = { bold = true },
+  typeStyle = {},
+  transparent = false,   -- do not set background color
+  dimInactive = false,   -- dim inactive window `:h hl-NormalNC`
+  terminalColors = true, -- define vim.g.terminal_color_{0,17}
+  colors = {             -- add/modify theme and palette colors
+    palette = {},
+    theme = { wave = {}, lotus = {}, dragon = {}, all = {} },
+  },
+  overrides = function(colors) -- add/modify highlights
+    return {}
+  end,
+  theme = "wave",  -- Load "wave" theme when 'background' option is not set
+  background = {   -- map the value of 'background' option to a theme
+    dark = "wave", -- try "dragon" !
+    light = "lotus"
+  },
+})
+
+require('rose-pine').setup({
+  variant = "auto",      -- auto, main, moon, or dawn
+  dark_variant = "main", -- main, moon, or dawn
+  dim_inactive_windows = false,
+  extend_background_behind_borders = true,
+
+  styles = {
+    bold = true,
+    italic = true,
+    transparency = true,
+  },
+})
+
 require("nvim-tree").setup()
 
 -- [[ Setting options ]]
@@ -290,6 +349,7 @@ vim.o.hlsearch = false
 
 -- Make line numbers default
 vim.wo.number = true
+vim.wo.relativenumber = true
 
 -- Enable mouse mode
 vim.o.mouse = 'a'
@@ -433,10 +493,18 @@ vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { de
 vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
 
 vim.g.zenwritten = { transparent_background = true, darkness = 'warm' }
- vim.g.neobones = { transparent_background = true, darkness = 'warm' }
- --vim.g.zenbones = { transparent_background = true, darkness = 'warm' }
+-- vim.g.neobones = { transparent_background = true, darkness = 'warm' }
+vim.g.zenburned = { transparent_background = true, }
 
-vim.cmd.colorscheme 'zenwritten'
+vim.g.everforest_background = "hard"
+vim.cmd.colorscheme 'everforest'
+
+-- change color of maching curlys because it's blending in too much with my cursor :-(
+-- only for lunaperch
+-- vim.cmd.highlight 'MatchParen cterm=bold gui=bold guifg=#ff87ff'
+
+-- format on save
+vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
 
 
 -- [[ Configure Treesitter ]]
@@ -448,7 +516,7 @@ vim.defer_fn(function()
     ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
-    auto_install = false,
+    auto_install = true,
     -- Install languages synchronously (only applied to `ensure_installed`)
     sync_install = false,
     -- List of parsers to ignore installing
@@ -590,7 +658,7 @@ require('mason-lspconfig').setup()
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
 local servers = {
-  -- clangd = {},
+  clangd = { filetypes = { 'cpp', 'h', 'c', 'hpp' } },
   -- gopls = {},
   -- pyright = {},
   -- rust_analyzer = {},
@@ -630,6 +698,16 @@ mason_lspconfig.setup_handlers {
       filetypes = (servers[server_name] or {}).filetypes,
     }
   end,
+}
+
+require('lspconfig').clangd.setup {
+  capabilities = capabilities,
+  on_attach = on_attach,
+  settings = servers['clangd'],
+  filetypes = (servers['server_name'] or {}).filetypes,
+  init_options = {
+    compilationDatabasePath = './out/debug'
+  }
 }
 
 -- [[ Configure nvim-cmp ]]
